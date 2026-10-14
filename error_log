@@ -1,0 +1,8 @@
+[13-Oct-2026 13:00:20 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in /home/bsdispxy/dev.bsdisp.xyz/services/Model.php:650
+Stack trace:
+#0 /home/bsdispxy/dev.bsdisp.xyz/partials/title-meta.php(1): Model->getSettingValue('logo', 'logo')
+#1 /home/bsdispxy/dev.bsdisp.xyz/index.php(138): include('/home/bsdispxy/...')
+#2 {main}
+  thrown in /home/bsdispxy/dev.bsdisp.xyz/services/Model.php on line 650
+[13-Oct-2026 18:33:21 Asia/Dhaka] PHP Warning:  Undefined variable $bzones in /home/bsdispxy/dev.bsdisp.xyz/pages/mikrotik/all_secret_list.php on line 66
+[13-Oct-2026 18:33:21 Asia/Dhaka] PHP Warning:  foreach() argument must be of type array|object, null given in /home/bsdispxy/dev.bsdisp.xyz/pages/mikrotik/all_secret_list.php on line 66

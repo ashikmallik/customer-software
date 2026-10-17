@@ -1,6 +1,0 @@
-[09-Aug-2026 05:21:25 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[42S22]: Column not found: 1054 Unknown column 's.customer_type' in 'SELECT' in /home/bsdispxy/dev.bsdisp.xyz/services/Model.php:160
-Stack trace:
-#0 /home/bsdispxy/dev.bsdisp.xyz/services/Model.php(160): PDOStatement->execute()
-#1 /home/bsdispxy/dev.bsdisp.xyz/pages/inventory/sales/sales_ajax.php(219): Model->raw_sql('\r\n        SELEC...')
-#2 {main}
-  thrown in /home/bsdispxy/dev.bsdisp.xyz/services/Model.php on line 160

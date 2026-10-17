@@ -1,0 +1,98 @@
+[28-Jan-2023 15:55:41 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/include/login.php(6): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19
+[28-Jan-2023 15:55:43 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/include/login.php(6): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19
+[28-Jan-2023 15:55:43 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/include/login.php(6): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19
+[28-Jan-2023 15:55:43 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/include/login.php(6): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19
+[28-Jan-2023 15:55:43 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/include/login.php(6): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19
+[28-Jan-2023 15:55:44 Asia/Dhaka] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] Can't connect to local MySQL server through socket '/var/lib/mysql/mysql.sock' (2) in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/include/login.php(6): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19
+[25-Mar-2025 11:58:36 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdbdxyz/zero4.bsdbd.xyz/model/oop.php:21
+Stack trace:
+#0 /home/bsdbdxyz/zero4.bsdbd.xyz/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdbdxyz/zero4.bsdbd.xyz/model/oop.php on line 21
+[25-Mar-2025 12:01:30 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class "PDO" not found in /home/bsdbdxyz/zero4.bsdbd.xyz/model/oop.php:21
+Stack trace:
+#0 /home/bsdbdxyz/zero4.bsdbd.xyz/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdbdxyz/zero4.bsdbd.xyz/model/oop.php on line 21
+[25-Mar-2025 12:01:31 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class "PDO" not found in /home/bsdbdxyz/zero4.bsdbd.xyz/model/oop.php:21
+Stack trace:
+#0 /home/bsdbdxyz/zero4.bsdbd.xyz/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdbdxyz/zero4.bsdbd.xyz/model/oop.php on line 21
+[07-Apr-2026 06:59:05 UTC] PHP Warning:  session_start(): open(/opt/alt/php74/var/lib/php/session/sess_04909502cc4cf32b95fe60f40ed424c8, O_RDWR) failed: Disk quota exceeded (122) in /home/bsdbdxyz/zero4.bsdbd.xyz/include/login.php on line 2
+[07-Apr-2026 06:59:05 UTC] PHP Warning:  session_start(): Failed to read session data: files (path: /opt/alt/php74/var/lib/php/session) in /home/bsdbdxyz/zero4.bsdbd.xyz/include/login.php on line 2
+[30-Apr-2026 19:08:32 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:09:11 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:09:11 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:09:57 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:10:02 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:10:04 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:10:25 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:10:26 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21
+[30-Apr-2026 19:11:11 Asia/Dhaka] PHP Fatal error:  Uncaught Error: Class 'PDO' not found in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php:21
+Stack trace:
+#0 /home/bsdnewco/mconnect.bsdnew.com/include/login.php(6): Controller->__construct()
+#1 {main}
+  thrown in /home/bsdnewco/mconnect.bsdnew.com/model/oop.php on line 21

@@ -1,0 +1,6 @@
+[08-Feb-2023 15:30:49 UTC] PHP Fatal error:  Uncaught PDOException: SQLSTATE[08004] [1040] Too many connections in /home/robotis1/sky.robotispsoft.xyz/model/oop.php:19
+Stack trace:
+#0 /home/robotis1/sky.robotispsoft.xyz/model/oop.php(19): PDO->__construct('mysql:host=loca...', 'robotis1_user', 'robotis1_user')
+#1 /home/robotis1/sky.robotispsoft.xyz/mikrotik/monitorTraficReturn.php(19): Controller->__construct()
+#2 {main}
+  thrown in /home/robotis1/sky.robotispsoft.xyz/model/oop.php on line 19

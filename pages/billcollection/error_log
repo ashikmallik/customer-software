@@ -1,2 +1,0 @@
-[01-Oct-2026 11:53:27 Asia/Dhaka] PHP Warning:  Undefined array key "ag_id" in /home/bsdispxy/dev.bsdisp.xyz/pages/billcollection/billpay_ajax.php on line 16
-[14-Oct-2026 11:58:53 Asia/Dhaka] PHP Warning:  Trying to access array offset on value of type bool in /home/bsdispxy/dev.bsdisp.xyz/pages/billcollection/billpay_ajax.php on line 136

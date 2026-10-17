@@ -123,8 +123,9 @@ $(document).ready(function() {
         "searching": true,
         "ordering": true,
         "info": true,
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        dom: 'Bfrtip',
+        "pageLength": 20,
+        "lengthMenu": [[20, 100, 500, -1], [20, 100, 500, "All"]],
+        dom: 'lBfrtip',
         buttons: [
             {
                 extend: 'excel',

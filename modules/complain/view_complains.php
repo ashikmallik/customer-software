@@ -600,7 +600,7 @@ function toggleImpactLink(elementId, btnElement) {
         });
         
         $('#example').DataTable( {
-        "lengthMenu": [[200, 250, 300, -1], [200, 250, 300, "All"]],
+        
         dom:"Bflrtip",
         buttons: [ { 
             extend: 'excel', 

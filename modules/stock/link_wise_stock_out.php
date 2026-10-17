@@ -8,26 +8,44 @@ $userid = isset($_SESSION['UserId']) ? $_SESSION['UserId'] : NULL;
 // Get selected warehouse
 $selected_warehouse = isset($_GET['warehouse_id']) ? (int)$_GET['warehouse_id'] : 0;
 
-// ========== Delete Function Start =================
-if ($obj->userWorkPermission($acc, 'delete')) {
-    if (isset($_GET['dltoken']) && !empty($_GET['dltoken'])) {
-        $dltoken = (int)$_GET['dltoken'];
-
-        if ($obj->Delete_data("tbl_stock", "id='$dltoken'")) {
-            $obj->notificationStore('Delete Successfull', 'success');
-        } else {
-            $obj->notificationStore('Sorry ! Delete Failed. Try Again');
-        }
-
-        $redirect = "?q=all_stock_out";
-        if (!empty($selected_warehouse)) {
-            $redirect .= "&warehouse_id=" . $selected_warehouse;
-        }
-
-        echo '<script>window.location="' . $redirect . '";</script>';
-        exit;
-    }
+// ========== Link + Product wise stock out (one query, grouped) =================
+$sql = "
+    SELECT s.ag_id, s.item_id,
+           SUM(s.item_qty)   AS total_qty,
+           MAX(s.entry_date) AS last_date
+    FROM tbl_stock s
+    INNER JOIN tbl_agent a ON a.ag_id = s.ag_id
+    WHERE s.status = '0'
+      AND s.item_qty > 0
+";
+if (!empty($selected_warehouse)) {
+    $sql .= " AND s.warehouse_id = " . $selected_warehouse;
 }
+$sql .= " GROUP BY s.ag_id, s.item_id";
+
+$items = array();
+foreach ($obj->view_all("tbl_item") as $it) {
+    $items[$it['item_id']] = $it;
+}
+
+$links = array();
+foreach ($obj->raw_sql($sql) as $row) {
+    $ag_id = $row['ag_id'];
+    if (!isset($links[$ag_id])) {
+        $links[$ag_id] = array('last_date' => $row['last_date'], 'total_qty' => 0, 'products' => array());
+    }
+    if ($row['last_date'] > $links[$ag_id]['last_date']) {
+        $links[$ag_id]['last_date'] = $row['last_date'];
+    }
+    $links[$ag_id]['total_qty'] += (float)$row['total_qty'];
+    $links[$ag_id]['products'][] = array(
+        'name' => isset($items[$row['item_id']]) ? $items[$row['item_id']]['item_name'] : 'Unknown Item',
+        'unit' => isset($items[$row['item_id']]) ? $items[$row['item_id']]['unit'] : '',
+        'qty'  => (float)$row['total_qty'],
+    );
+}
+
+$grand_total_qty = 0;
 ?>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.5.1/css/buttons.dataTables.min.css">
@@ -36,6 +54,20 @@ if ($obj->userWorkPermission($acc, 'delete')) {
     <div class="col-md-12 bg-teal-800" style="margin-bottom:15px;padding:10px 0px 3px 15px;font-size:16px;font-family:Lucida Sans Unicode;">
         <div class="col-md-4">
             <b>Link Wise Stock Out Information</b>
+        </div>
+        <div class="col-md-4">
+            <form method="get" style="margin:0;">
+                <input type="hidden" name="q" value="link_wise_stock_out">
+                <select name="warehouse_id" class="form-control" onchange="this.form.submit()" style="width: 280px;">
+                    <option value="">All Warehouses</option>
+                    <?php
+                    foreach ($obj->view_all("tbl_warehouse") as $wh) {
+                        $selected = ($selected_warehouse == $wh['warehouse_id']) ? 'selected' : '';
+                        echo "<option value='{$wh['warehouse_id']}' {$selected}>{$wh['warehouse_name']}</option>";
+                    }
+                    ?>
+                </select>
+            </form>
         </div>
     </div>
 </div>
@@ -53,87 +85,54 @@ if ($obj->userWorkPermission($acc, 'delete')) {
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Date</th>
+                        <th>Last Date</th>
                         <th>Link Name</th>
+                        <th>Products (Used Qty)</th>
                         <th>Total Used Qty</th>
-                        
                     </tr>
                 </thead>
                 <tbody>
 
                 <?php
                 $i = 0;
-
-                $sql = "
-                    SELECT s.*
-                    FROM tbl_stock s
-                    INNER JOIN (
-                        SELECT ag_id, MAX(id) AS max_id
-                        FROM tbl_stock
-                        WHERE status = '0'
-                          AND item_qty > 0
-                        GROUP BY ag_id
-                    ) t ON s.id = t.max_id
-                    INNER JOIN tbl_agent a ON a.ag_id = s.ag_id
-                    ";
-                    
-                    if (!empty($selected_warehouse)) {
-                        $sql .= " WHERE s.warehouse_id = " . (int)$selected_warehouse;
-                    }
-                    
-                    $sql .= " ORDER BY s.id DESC";
-                    
-                    $expense_detail = $obj->raw_sql($sql);
-
-                foreach ($expense_detail as $value) {
-
+                foreach ($links as $ag_id => $link) {
                     $i++;
+                    $grand_total_qty += $link['total_qty'];
 
-                    $item = $obj->details_by_cond(
-                        'tbl_item',
-                        "item_id=" . (int)$value['item_id']
-                    );
-
-                    $agent = $obj->details_by_cond(
-                        'tbl_agent',
-                        "ag_id=" . (int)$value['ag_id']
-                    );
-                        $row = $obj->raw_sql("
-    SELECT SUM(item_qty) AS total_qty
-    FROM tbl_stock
-    WHERE status = 0
-    AND ag_id = 50
-");
-
+                    $agent = $obj->details_by_cond('tbl_agent', "ag_id=" . (int)$ag_id);
                     ?>
 
                     <tr>
                         <td><?php echo $i; ?></td>
 
-                        <td>
-                            <?php
-                            echo !empty($value['entry_date'])
-                                ? date("d-m-Y", strtotime($value['entry_date']))
-                                : '';
-                            ?>
+                        <td data-order="<?php echo date('Y-m-d', strtotime($link['last_date'])); ?>">
+                            <?php echo !empty($link['last_date']) ? date("d-m-Y", strtotime($link['last_date'])) : ''; ?>
                         </td>
 
                         <td>
-                            <a href="?q=view_individual_cus&token=<?php echo $value['ag_id']; ?>">
-                                <?php
-                                echo !empty($agent['link_name'])
-                                    ? $agent['link_name']
-                                    : $agent['ag_name'];
-                                ?>
+                            <a href="?q=view_individual_cus&token=<?php echo $ag_id; ?>">
+                                <?php echo !empty($agent['link_name']) ? $agent['link_name'] : $agent['ag_name']; ?>
                             </a>
                         </td>
-                        <td><?php echo $row[0]['total_qty'];; ?></td>
 
+                        <td>
+                            <?php foreach ($link['products'] as $p) { ?>
+                                <div><b><?php echo htmlspecialchars($p['name']); ?></b> : <?php echo $p['qty'] . ' ' . htmlspecialchars($p['unit']); ?></div>
+                            <?php } ?>
+                        </td>
+
+                        <td><b><?php echo $link['total_qty']; ?></b></td>
                     </tr>
 
                 <?php } ?>
 
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="4" class="text-right">Grand Total Used Qty</th>
+                        <th><?php echo $grand_total_qty; ?></th>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </div>
@@ -142,7 +141,7 @@ if ($obj->userWorkPermission($acc, 'delete')) {
 <script>
 $(document).ready(function () {
     $('#example').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         buttons: ['print'],
         order: [[1, 'desc']]
     });

@@ -18,6 +18,13 @@
 <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css">
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript">
+    // Default "Show entries" for every DataTable in the software
+    $.extend(true, $.fn.dataTable.defaults, {
+        pageLength: 20,
+        lengthMenu: [[20, 100, 500, -1], [20, 100, 500, "All"]]
+    });
+</script>
 <!-- End DataTable ======================================== -->
 
 

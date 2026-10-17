@@ -122,7 +122,7 @@ if ($msg != null) {
 
         var table = $('#datatable_view_all_due').DataTable({
             <?php if($obj->hasPermission($ty, 'print_due_payment_client')){ ?>
-            dom: 'Bfrtip',
+            dom: 'lBfrtip',
             buttons: [
                 {
                     extend: 'print',

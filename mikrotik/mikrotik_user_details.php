@@ -141,7 +141,7 @@ if ($mikrotik->checkConnection()) {
 $(document).ready(function () {
 
     $('table').DataTable( {
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         responsive: true,
         "paging": false,
         "searching": false,

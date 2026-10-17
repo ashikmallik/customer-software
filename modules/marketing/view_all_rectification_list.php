@@ -582,7 +582,7 @@ $(document).on('change', '#edit_picture_code', function(){
 
 
 $('#datatable_view_client').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         scrollX: true,
         buttons: [
             {

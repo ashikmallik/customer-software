@@ -15,14 +15,22 @@ if (isset($_POST['update'])) {
     $form_data = array(
 
         'item_id' => $item_id,
-        'ag_id' => $ag_id,
         'item_qty' => $quantity,
         'description' => str_replace("'", "", $description),
-        'added_by' => $userid,
+        'added_by' => !empty($added_by) ? $added_by : $userid,
     );
-    $expense_update = $obj->Update_data("tbl_stock", $form_data, "where id='$token'");
 
-    if ($expense_update) {
+    // Stock already given out must stay covered after this edit (no negative stock)
+    $new_item_balance = $obj->get_available_stock($item_id, $expense['warehouse_id'], $expense['id']) + (float)$quantity;
+    $old_item_balance = ($item_id != $expense['item_id'])
+        ? $obj->get_available_stock($expense['item_id'], $expense['warehouse_id'], $expense['id'])
+        : 0;
+
+    if (!is_numeric($quantity) || $quantity <= 0) {
+        $notification = 'Quantity must be greater than 0';
+    } elseif ($new_item_balance < 0 || $old_item_balance < 0) {
+        $notification = 'Update not possible! This stock is already used in Stock Out. Stock would become negative.';
+    } elseif ($obj->Update_data("tbl_stock", $form_data, "where id='$token'")) {
         ?>
         <script>
             window.location = "?q=all_stock_in";
@@ -58,10 +66,10 @@ if (isset($_POST['update'])) {
                         <option value="">select</option>
                         <?php
                         $i = '0';
-                        foreach ($obj->view_all("tbl_stock_item") as $value) {
+                        foreach ($obj->view_all("tbl_item") as $value) {
                             $i++;
                             ?>
-                            <option <?php if ($expense['item_id'] == $value['item_id']) echo 'selected' ?> value="<?php echo isset($value['item_id']) ? $value['item_id'] : NULL; ?>"><?php echo isset($value['item_name']) ? $value['item_name'] : NULL; ?></option>
+                            <option <?php if ($expense['item_id'] == $value['item_id']) echo 'selected' ?> value="<?php echo isset($value['item_id']) ? $value['item_id'] : NULL; ?>"><?php echo isset($value['item_name']) ? $value['item_name'] : NULL; ?><?php echo !empty($value['codeandnode']) ? ':: ' . $value['codeandnode'] : ''; ?></option>
                             <?php
                         }
                         ?>
@@ -69,7 +77,7 @@ if (isset($_POST['update'])) {
                 </div>
                 <div class="form-group">
                     <label>Added By</label>
-                    <select class="form-control" required="required" name="ag_id" id="status">
+                    <select class="form-control" required="required" name="added_by" id="status">
                         <option value="">select</option>
                         <?php
                         $i = '0';

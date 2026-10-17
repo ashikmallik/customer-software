@@ -18,9 +18,14 @@ $itemDetails = $obj->details_by_cond("tbl_stock_item", "item_id='$token' AND war
         $dltoken = isset($_GET['dltoken']) ? $_GET['dltoken'] : NULL;
         if (!empty($dltoken)) {
 
-            $dele = $obj->Delete_data("tbl_stock", "id='$dltoken'");
+            $dltoken = (int)$dltoken;
+            $stockRow = $obj->details_by_cond("tbl_stock", "id='$dltoken'");
 
-            if ($dele) {
+            // Deleting a stock-in that is already used in stock out would make stock negative
+            if ($stockRow && $stockRow['status'] == 1
+                && $obj->get_available_stock($stockRow['item_id'], $stockRow['warehouse_id'], $stockRow['id']) < 0) {
+                $notification = 'Delete not possible! This stock is already used in Stock Out. Stock would become negative.';
+            } elseif ($obj->Delete_data("tbl_stock", "id='$dltoken'")) {
                 $notification = 'Delete Successfull';
                 ?>
             <script>

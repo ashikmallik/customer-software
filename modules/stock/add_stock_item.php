@@ -4,33 +4,40 @@ $date_time = date('Y-m-d g:i:sA');
 //$date        = date('Y-m-d');
 $ip_add = $_SERVER['REMOTE_ADDR'];
 $userid = isset($_SESSION['UserId']) ? $_SESSION['UserId'] : NULL;
-$token = isset($_GET['token']) ? $_GET['token'] : NULL;
+$token = isset($_GET['token']) ? (int)$_GET['token'] : NULL;
+$warehouse_id = isset($_GET['warehouse_id']) ? (int)$_GET['warehouse_id'] : 0;
 
-$details = $obj->details_by_cond("tbl_stock_item", "tbl_stock_item.item_id='$token'");
+$stock_item_cond = "tbl_stock_item.item_id='$token'";
+if (!empty($warehouse_id)) {
+    $stock_item_cond .= " AND tbl_stock_item.warehouse_id='$warehouse_id'";
+}
+$details = $obj->details_by_cond("tbl_stock_item", $stock_item_cond);
 
 extract($details);
 
 $item = $details['item_qty'];
+$itemInfo = $obj->details_by_cond("tbl_item", "item_id='$token'");
+$details['item_name'] = !empty($itemInfo['item_name']) ? $itemInfo['item_name'] : ($details['item_name'] ?? '');
 
 if (isset($_POST['update'])) {
-    extract($_POST);
+    $itemQuantity = isset($_POST['itemQuantity']) ? $_POST['itemQuantity'] : 0;
 
     $form_data = array(
-        'item_qty' => $_POST['itemQuantity']+ $item,
+        'item_qty' => $itemQuantity + $item,
     );
     $add_data = array(
-        'item_qty' => $_POST['itemQuantity'],
+        'item_qty' => $itemQuantity,
         'item_id' =>$token,
+        'warehouse_id' => $details['warehouse_id'],
         'added_by' =>$userid,
         'entry_date' =>date("Y/m/d"),
         'status' => 1
         );
-    $updateStock = $obj->Update_data("tbl_stock_item", $form_data, "tbl_stock_item.item_id='$token'");
 
-    $service_add = $obj->Insert_data("tbl_stock", $add_data);
-
-
-    if ($updateStock) {
+    if (!is_numeric($itemQuantity) || $itemQuantity <= 0) {
+        $notification = 'Quantity must be greater than 0';
+    } elseif ($obj->Update_data("tbl_stock_item", $form_data, "tbl_stock_item.item_id='$token' AND tbl_stock_item.warehouse_id='" . (int)$details['warehouse_id'] . "'")
+        && $obj->Insert_data("tbl_stock", $add_data)) {
         ?>
         <script>
             window.location = "?q=view_stock_in";

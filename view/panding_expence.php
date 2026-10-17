@@ -255,7 +255,7 @@ if( $obj->userWorkPermission($acc,'delete')){
         var title = $('h4#preview_date').html();
         var table = $('#datatable_view_expense').DataTable({
             <?php if($obj->hasPermission($ty, 'print_expenses')){ ?>
-            dom: 'Bfrtip',
+            dom: 'lBfrtip',
             buttons: [
                 {
                     extend: 'print',

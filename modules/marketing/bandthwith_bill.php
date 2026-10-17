@@ -72,15 +72,16 @@ function build_reseller_items_from_post()
         $remarks  = isset($item_remk[$key]) ? trim($item_remk[$key]) : '';
 
         // Purchase side (NTTN is added to RATE-SCL before VAT is applied)
+        // Every figure is rounded to 2 decimals (same as the form shows it), so totals always match
         $base       = $rate_scl + $nttn;
-        $vat        = $base * 0.05;
-        $with_vat   = $base + $vat;
-        $purchase_total = $qty * $with_vat;
+        $vat        = round($base * 0.05, 2);
+        $with_vat   = round($base + $vat, 2);
+        $purchase_total = round($qty * $with_vat, 2);
 
         // Sale side
-        $profit_per_unit = $rate_zfc - $with_vat;
-        $benefit         = $profit_per_unit * $qty;
-        $sale_total      = $qty * $rate_zfc;
+        $profit_per_unit = round($rate_zfc - $with_vat, 2);
+        $sale_total      = round($qty * $rate_zfc, 2);
+        $benefit         = round($sale_total - $purchase_total, 2);
 
         $items[] = array(
             'product'          => $product,
@@ -103,7 +104,7 @@ function build_reseller_items_from_post()
         $total_sale_price += $sale_total;
     }
 
-    return array($items, $total_quantity, $total_purchase, $total_benefit, $total_sale_price);
+    return array($items, $total_quantity, round($total_purchase, 2), round($total_benefit, 2), round($total_sale_price, 2));
 }
 
 // Insert Action
@@ -111,7 +112,7 @@ if (isset($_POST['save_data'])) {
     list($items, $total_quantity, $total_purchase, $total_benefit, $total_sale_price) = build_reseller_items_from_post();
 
     $partial_paid = isset($_POST['partial_paid']) ? (float) $_POST['partial_paid'] : 0;
-    $due = $total_sale_price - $partial_paid;
+    $due = round($total_sale_price - $partial_paid, 2);
 
     $form_data = array(
         'date'              => $_POST['date'],
@@ -146,7 +147,7 @@ if (isset($_POST['update_data'])) {
     list($items, $total_quantity, $total_purchase, $total_benefit, $total_sale_price) = build_reseller_items_from_post();
 
     $partial_paid = isset($_POST['partial_paid']) ? (float) $_POST['partial_paid'] : 0;
-    $due = $total_sale_price - $partial_paid;
+    $due = round($total_sale_price - $partial_paid, 2);
 
     $form_data = array(
         'date'              => $_POST['date'],
@@ -418,6 +419,16 @@ if (isset($_POST['update_data'])) {
                             </span>
                         </td>
                         <td>
+                            <a href="/pdf/generate_bandwidth_bill_pdf.php?id=<?= $row['id']; ?>" target="_blank" class="btn btn-secondary btn-sm" title="Print PDF">
+                                <i class="fa fa-file-pdf-o"></i>
+                            </a>
+                            <button type="button" class="btn btn-success btn-sm btnSharePdf"
+                                data-id="<?= $row['id']; ?>"
+                                data-phone="<?= htmlspecialchars($row['customer_phone']); ?>"
+                                data-customer="<?= htmlspecialchars($row['customer_name']); ?>"
+                                title="Share PDF via WhatsApp">
+                                <i class="fa fa-whatsapp"></i>
+                            </button>
                             <button type="button" class="btn btn-success btn-sm editData"
                                 data-id="<?= $row['id']; ?>"
                                 data-date="<?= $row['date']; ?>"
@@ -458,7 +469,7 @@ if (isset($_POST['update_data'])) {
 $('#datatable_bandwidth_bill').DataTable({
     scrollX: true,
     responsive: true,
-    dom: 'Bfrtip',
+    dom: 'lBfrtip',
     buttons: [
         { extend: 'excelHtml5', text: 'Excel', className: 'btn btn-success btn-sm' },
         { extend: 'csvHtml5', text: 'CSV', className: 'btn btn-info btn-sm' },
@@ -468,6 +479,11 @@ $('#datatable_bandwidth_bill').DataTable({
 
 function escapeHtml(str) {
     return $('<div>').text(str === undefined || str === null ? '' : str).html();
+}
+
+// Round to 2 decimals the same way PHP round() does
+function round2(n) {
+    return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
 function itemRowHtml(data) {
@@ -509,14 +525,15 @@ function calcRow($row) {
     var nttn    = parseFloat($row.find('input[name="nttn[]"]').val()) || 0;
     var rateZfc = parseFloat($row.find('input[name="rate_zfc[]"]').val()) || 0;
 
+    // Same rounding as the server side (every figure to 2 decimals)
     var base = rateScl + nttn;
-    var vat = base * 0.05;
-    var withVat = base + vat;
-    var purchaseTotal = qty * withVat;
+    var vat = round2(base * 0.05);
+    var withVat = round2(base + vat);
+    var purchaseTotal = round2(qty * withVat);
 
-    var profitPerUnit = rateZfc - withVat;
-    var benefit = profitPerUnit * qty;
-    var saleTotal = qty * rateZfc;
+    var profitPerUnit = round2(rateZfc - withVat);
+    var saleTotal = round2(qty * rateZfc);
+    var benefit = round2(saleTotal - purchaseTotal);
 
     $row.find('.out-vat').val(vat.toFixed(2));
     $row.find('.out-withvat').val(withVat.toFixed(2));
@@ -539,9 +556,9 @@ function calcGrandTotals() {
     });
 
     $('#grand_total_qty').val(totalQty.toFixed(2));
-    $('#grand_total_purchase').val(totalPurchase.toFixed(2));
-    $('#grand_total_benefit').val(totalBenefit.toFixed(2));
-    $('#grand_total_sale').val(totalSale.toFixed(2));
+    $('#grand_total_purchase').val(round2(totalPurchase).toFixed(2));
+    $('#grand_total_benefit').val(round2(totalBenefit).toFixed(2));
+    $('#grand_total_sale').val(round2(totalSale).toFixed(2));
 
     calcDue();
 }
@@ -549,7 +566,7 @@ function calcGrandTotals() {
 function calcDue() {
     var totalSale = parseFloat($('#grand_total_sale').val()) || 0;
     var partialPaid = parseFloat($('#partial_paid').val()) || 0;
-    $('#due_amount').val((totalSale - partialPaid).toFixed(2));
+    $('#due_amount').val(round2(totalSale - partialPaid).toFixed(2));
 }
 
 $(document).on('input', '.calc-field', function () {
@@ -644,4 +661,44 @@ $(document).on('click', '.toggleItemsView', function () {
 
 // Start with one empty row ready
 addItemRow();
+
+// ---------- Share PDF via WhatsApp (wa.me link, same as Project Bill) ----------
+var PDF_BASE_URL = window.location.origin + '/pdf/generate_bandwidth_bill_pdf.php?id=';
+
+function formatWhatsAppNumber(rawNumber) {
+    // Keep digits only
+    var digits = String(rawNumber || '').replace(/\D/g, '');
+
+    if (!digits) return null;
+
+    // 01XXXXXXXXX -> 8801XXXXXXXXX, 1XXXXXXXXX -> 8801XXXXXXXXX, 8801XXXXXXXXX stays
+    if (digits.length === 11 && digits.startsWith('0')) {
+        digits = '880' + digits.substring(1);
+    } else if (digits.length === 10 && digits.startsWith('1')) {
+        digits = '880' + digits;
+    }
+
+    return digits;
+}
+
+$(document).on('click', '.btnSharePdf', function () {
+    var $btn = $(this);
+    var id = $btn.data('id');
+    var phone = formatWhatsAppNumber($btn.data('phone'));
+    var customer = $btn.data('customer') || '';
+
+    if (!phone) {
+        alert('এই বিলের জন্য কোনো সঠিক WhatsApp নম্বর পাওয়া যায়নি।');
+        return;
+    }
+
+    var pdfUrl = PDF_BASE_URL + id;
+
+    var message =
+        'হ্যালো ' + customer + ',\n' +
+        'আপনার বিলের PDF কপি এখানে দেখুন:\n' +
+        pdfUrl;
+
+    window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(message), '_blank');
+});
 </script>

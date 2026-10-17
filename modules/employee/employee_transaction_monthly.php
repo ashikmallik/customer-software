@@ -289,8 +289,9 @@ if (isset($_POST['submit_employee_payment'])) {
 $(document).ready(function () {
 
     $('#employeeTransactionTable').DataTable({
-        "pageLength": 25,
-        dom: 'Bfrtip',
+        "pageLength": 20,
+        "lengthMenu": [[20, 100, 500, -1], [20, 100, 500, "All"]],
+        dom: 'lBfrtip',
         buttons: [
             {
                 extend: 'print',

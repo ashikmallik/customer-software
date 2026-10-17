@@ -198,7 +198,7 @@ $mac = $obj->details_by_cond("vw_agent","ag_id='$cus_id'");
 
     $(document).ready( function () {
         $('#example').DataTable( {
-        "lengthMenu": [[200, 250, 300, -1], [200, 250, 300, "All"]]
+        
     } );
     } );
 

@@ -70,7 +70,7 @@ if (isset($_POST['submit'])) {
         'solve_by'      => $_POST['employee_id'],
         'update_by'     => $userid,
         'complain_date' => date('Y-m-d H:i:s', strtotime($_POST['complain_date'].' '.$_POST['complain_time'])),
-        'solve_date'    => date('Y-m-d H:i:s'),
+        // solve_date is set only when status changes to solved (view_complains), never on edit
         'image'         => $image_name,
     );
 

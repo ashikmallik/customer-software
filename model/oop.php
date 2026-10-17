@@ -1082,6 +1082,25 @@ public function get_total_stock_out($item_id, $warehouse_id = null) {
     $data = $this->raw_sql($sql);
     return !empty($data) ? (int)$data[0]['qty'] : 0;
 }
+
+// ==================== Available Stock (In - Out) ====================
+// $exclude_id: ignore this tbl_stock row (used when editing / deleting that row)
+public function get_available_stock($item_id, $warehouse_id = null, $exclude_id = null) {
+    $sql = "SELECT COALESCE(SUM(CASE WHEN status = '1' THEN item_qty ELSE 0 END), 0)
+                 - COALESCE(SUM(CASE WHEN status = '0' THEN item_qty ELSE 0 END), 0) AS qty
+            FROM tbl_stock
+            WHERE item_id = '" . (int)$item_id . "'";
+
+    if (!empty($warehouse_id)) {
+        $sql .= " AND warehouse_id = '" . (int)$warehouse_id . "'";
+    }
+    if (!empty($exclude_id)) {
+        $sql .= " AND id != '" . (int)$exclude_id . "'";
+    }
+
+    $data = $this->raw_sql($sql);
+    return !empty($data) ? (float)$data[0]['qty'] : 0;
+}
     //stock end
 
 }// class Controller

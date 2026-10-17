@@ -46,20 +46,37 @@ $footer = '
     </footer>
 ';
 
+// Number with up to $max decimals (trailing zeros removed, min $min decimals),
+// so "qty x unit price = total" printed on the bill always matches
+function pdf_num($value, $min = 2, $max = 4)
+{
+    $s = rtrim(number_format((float)$value, $max, '.', ','), '0');
+    $decimals = strlen($s) - strpos($s, '.') - 1;
+    if ($decimals < $min) {
+        $s .= str_repeat('0', $min - $decimals);
+    }
+    return rtrim($s, '.');
+}
+
 // ---- Build items table rows ----
 $itemsRowsHtml = '';
 $sl = 1;
+$grandTotal = 0;
 foreach ($items as $it) {
+    $lineTotal = round((float)$it['total_price'], 2);
+    $grandTotal += $lineTotal;
     $itemsRowsHtml .= '
     <tr style="height:20px;">
         <td style="text-align:center;">' . $sl++ . '</td>
         <td>' . htmlspecialchars($it['item_name']) . '</td>
-        <td style="text-align:center;">' . rtrim(rtrim(number_format((float)$it['quantity'], 2), '0'), '.') . '</td>
+        <td style="text-align:center;">' . pdf_num($it['quantity'], 0) . '</td>
         <td style="text-align:center;">' . htmlspecialchars($it['unit']) . '</td>
-        <td style="text-align:right;">' . number_format((float)$it['unit_price'], 2) . '</td>
-        <td style="text-align:right;">' . number_format((float)$it['total_price'], 2) . '</td>
+        <td style="text-align:right;">' . pdf_num($it['unit_price']) . '</td>
+        <td style="text-align:right;">' . number_format($lineTotal, 2) . '</td>
     </tr>';
 }
+// Grand total = sum of the printed line totals
+$grandTotal = empty($items) ? round((float)$bill['total_price'], 2) : round($grandTotal, 2);
 
 // Start HTML content for the PDF body
 $html = '
@@ -95,7 +112,7 @@ $html .= $itemsRowsHtml;
 $html .= '
     <tr style="height: 25px;">
         <td colspan="5" style="text-align:right;"><b>Grand Total</b></td>
-        <th style="text-align:right;">' . number_format((float)$bill['total_price'], 2, ".", ",") . '</th>
+        <th style="text-align:right;">' . number_format($grandTotal, 2, ".", ",") . '</th>
     </tr>
 ';
 

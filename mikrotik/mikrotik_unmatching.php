@@ -350,8 +350,8 @@ if ($mikrotik->checkConnection()) {
             $('#example').DataTable( {
                 dom: 'Bfrtip',
                  lengthMenu: [
-                    [ 20, 50, 500, -1 ],
-                    [ '20 rows', '50 rows', '500 rows', 'Show all' ]
+                    [ 20, 100, 500, -1 ],
+                    [ '20 rows', '100 rows', '500 rows', 'Show all' ]
                 ],
                 buttons: [
                     'colvis',
@@ -364,8 +364,8 @@ if ($mikrotik->checkConnection()) {
             $('#softtbl').DataTable( {
                 dom: 'Bfrtip',
                  lengthMenu: [
-                    [ 20, 50, 500, -1 ],
-                    [ '20 rows', '50 rows', '500 rows', 'Show all' ]
+                    [ 20, 100, 500, -1 ],
+                    [ '20 rows', '100 rows', '500 rows', 'Show all' ]
                 ],
                 buttons: [
                     'colvis',

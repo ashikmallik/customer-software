@@ -152,7 +152,7 @@ if ($obj->userWorkPermission($acc, 'delete')) {
 <script>
 $(document).ready(function () {
     $('#example').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         buttons: ['print'],
         order: [[2, 'desc']]   // Date column descending
     });

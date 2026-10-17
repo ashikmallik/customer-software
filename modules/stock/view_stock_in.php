@@ -10,9 +10,15 @@ $selected_warehouse = isset($_GET['warehouse_id']) ? $_GET['warehouse_id'] : '';
 
 // ========== Delete Function Start =================
 if ($obj->userWorkPermission($acc, 'delete')) {
-    $dltoken = isset($_GET['dltoken']) ? $_GET['dltoken'] : NULL;
+    $dltoken = isset($_GET['dltoken']) ? (int)$_GET['dltoken'] : NULL;
+    $dl_warehouse = isset($_GET['dl_warehouse']) ? (int)$_GET['dl_warehouse'] : 0;
     if (!empty($dltoken)) {
-        $deleteStock = $obj->Delete_data("tbl_stock_item", "tbl_stock_item.item_id='$dltoken'");
+        // Delete only the row of that warehouse, not the item from every warehouse
+        $dl_cond = "tbl_stock_item.item_id='$dltoken'";
+        if (!empty($dl_warehouse)) {
+            $dl_cond .= " AND tbl_stock_item.warehouse_id='$dl_warehouse'";
+        }
+        $deleteStock = $obj->Delete_data("tbl_stock_item", $dl_cond);
         if ($deleteStock) {
             $notification = 'Delete Successfull';
         } else {
@@ -38,7 +44,16 @@ if (isset($_POST['submit'])) {
         'created_by'   => $userid
     );
 
-    $service_add = $obj->Insert_data("tbl_stock_item", $form_data);
+    if (!is_numeric($quantity) || $quantity <= 0) {
+        $notification = 'Quantity must be greater than 0';
+    } else {
+
+    // Same item in same warehouse: keep a single tbl_stock_item row, just add the stock in entry
+    if ($obj->details_by_cond("tbl_stock_item", "item_id='" . (int)$name . "' AND warehouse_id='" . (int)$warehouse_id . "'")) {
+        $service_add = true;
+    } else {
+        $service_add = $obj->Insert_data("tbl_stock_item", $form_data);
+    }
 
     $add_data = array(
         'item_qty'    => $quantity,
@@ -59,6 +74,7 @@ if (isset($_POST['submit'])) {
         <?php
     } else {
         $notification = 'Insert Failed';
+    }
     }
 }
 ?>
@@ -178,7 +194,7 @@ function numbersOnly(e) {
                             <td class="text-center">
                                 <div class="btn-group">
                                     <?php if ($obj->userWorkPermission($acc, 'edit')) { ?>
-                                        <a class="btn btn-xs btn-info" href="?q=add_stock_item&token=<?php echo $item_id ?>">
+                                        <a class="btn btn-xs btn-info" href="?q=add_stock_item&token=<?php echo $item_id ?>&warehouse_id=<?php echo $warehouse_id ?>">
                                             <span class="glyphicon glyphicon-plus"></span>
                                         </a>
                                         <a class="btn btn-xs btn-info" href="?q=edit_stock_item&token=<?php echo $item_id ?>">
@@ -186,7 +202,7 @@ function numbersOnly(e) {
                                         </a>
                                     <?php } ?>
                                     <?php if ($obj->userWorkPermission($acc, 'delete')) { ?>
-                                        <a href="?q=view_stock_in&dltoken=<?php echo $item_id ?>&warehouse_id=<?php echo $selected_warehouse; ?>"
+                                        <a href="?q=view_stock_in&dltoken=<?php echo $item_id ?>&dl_warehouse=<?php echo $warehouse_id ?>&warehouse_id=<?php echo $selected_warehouse; ?>"
                                            class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to delete this stock?');">
                                             <span class="glyphicon glyphicon-remove"></span>
                                         </a>

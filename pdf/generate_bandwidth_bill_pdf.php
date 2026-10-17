@@ -1,0 +1,154 @@
+<?php
+
+include '../model/oop.php';
+$obj = new Controller();
+
+date_default_timezone_set('Asia/Dhaka');
+
+$token = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+
+if (empty($token)) {
+    die('Invalid Bill ID');
+}
+
+$bill = $obj->details_by_cond("bandwidth_bill", "id='$token'");
+
+if (empty($bill)) {
+    die('Bill not found');
+}
+
+$items = json_decode($bill['items'], true);
+if (!is_array($items)) {
+    $items = array();
+}
+
+$status = strtoupper($bill['payment_status']);
+$statusColor = ($status === 'PAID') ? '#28a745' : (($status === 'PARTIAL') ? '#e0a800' : '#dc3545');
+
+// Billing month "2026-10" -> "October 2026"
+$billingMonth = '';
+if (!empty($bill['billing_month'])) {
+    $ts = strtotime($bill['billing_month'] . '-01');
+    $billingMonth = $ts ? date('F Y', $ts) : $bill['billing_month'];
+}
+
+// Header content - Will be repeated on every page
+$header = '
+    <header>
+    <div><img style="" width="100%" height="80" src="header.png" alt="Header Image" /></div>
+    <hr>
+    </header>
+';
+
+// Footer content - Will be repeated on every page
+$footer = '
+    <footer>
+        <div style="background-color:#03086e;color:white;text-align:center; padding:6px; margin-top:10px">
+            Bank Road, Jewel Shopping Complex, Sonaimuri Bazar, Noakhali, Bangladesh. Email: mconnect03@gmail.com, Cell: +8801779916011, +8801932583299
+        </div>
+    </footer>
+';
+
+// ---- Build items table rows (customer copy: sale side only) ----
+$itemsRowsHtml = '';
+$sl = 1;
+$grandTotal = 0;
+foreach ($items as $it) {
+    $lineTotal = round((float) $it['sale_total'], 2);
+    $grandTotal += $lineTotal;
+    $itemsRowsHtml .= '
+    <tr style="height:20px;">
+        <td style="text-align:center;">' . $sl++ . '</td>
+        <td>' . htmlspecialchars($it['product']) . (!empty($it['remarks']) ? '<br><small>' . htmlspecialchars($it['remarks']) . '</small>' : '') . '</td>
+        <td style="text-align:center;">' . rtrim(rtrim(number_format((float) $it['quantity'], 2), '0'), '.') . '</td>
+        <td style="text-align:right;">' . number_format((float) $it['rate_zfc'], 2) . '</td>
+        <td style="text-align:right;">' . number_format($lineTotal, 2) . '</td>
+    </tr>';
+}
+$grandTotal  = empty($items) ? round((float) $bill['total_sale_price'], 2) : round($grandTotal, 2);
+$partialPaid = round((float) $bill['partial_paid'], 2);
+$due         = round($grandTotal - $partialPaid, 2);
+
+$html = '
+    <div style="font-family: Helvetica; font-size: 11px; padding:5px;">
+        <div style="font-size: 11px; font-weight: bold; margin-top:-125px">
+            <div style="margin-left:70%;">Date: ' . htmlspecialchars($bill['date']) . '</div>
+            <div><b>Bill No :</b> BW-' . (int) $bill['id'] . '</div>
+            <div style="margin-bottom:10px">
+                <b>Bill to : ' . htmlspecialchars($bill['customer_name']) . '</b><br>
+                ' . (!empty($bill['customer_phone']) ? 'Phone : ' . htmlspecialchars($bill['customer_phone']) . '<br>' : '') . '
+                <br>
+                <b>Bill Type : </b>BANDWIDTH BILL<br>
+                ' . ($billingMonth !== '' ? '<b>Billing Month : </b>' . htmlspecialchars($billingMonth) . '<br>' : '') . '
+                <b>Status : </b><span style="color:' . $statusColor . '; font-weight:bold;">' . htmlspecialchars($status) . '</span>
+            </div>
+        </div>';
+
+$html .= '<table border="1" cellpadding="3" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 11px;">';
+$html .= '
+    <thead>
+        <tr style="background-color: #5cb85c; color: white; height: 25px;">
+            <th>Sl</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+';
+$html .= '<tbody>';
+$html .= $itemsRowsHtml;
+
+$html .= '
+    <tr style="height: 25px;">
+        <td colspan="4" style="text-align:right;"><b>Grand Total</b></td>
+        <th style="text-align:right;">' . number_format($grandTotal, 2, ".", ",") . '</th>
+    </tr>
+    <tr style="height: 25px;">
+        <td colspan="4" style="text-align:right;"><b>Paid</b></td>
+        <th style="text-align:right;">' . number_format($partialPaid, 2, ".", ",") . '</th>
+    </tr>
+    <tr style="height: 25px;">
+        <td colspan="4" style="text-align:right;"><b>Due</b></td>
+        <th style="text-align:right;">' . number_format($due, 2, ".", ",") . '</th>
+    </tr>
+';
+
+$html .= '</tbody></table>';
+
+$html .= '
+    <div style="margin-top:15px; font-size:11px;">
+        <b>Remarks : </b>' . nl2br(htmlspecialchars($bill['remarks'])) . '
+    </div>
+
+    <div style="margin-left:-60px;margin-top:80px">
+        <img style="" width="295" height="200" src="sile.png" alt="Signature Image" />
+    </div>
+    <p style="margin-top:-37px">Authorized Signature</p>
+
+    <div style="margin-top:-40px;font-size:10px">
+        <b>_This receipt is electronically generated by Mconnect.</b>
+    </div>
+</div>
+';
+
+// Set up mPDF and define the header and footer (same layout as project bill PDF)
+define('_MPDF_PATH', './');
+include("./mpdf.php");
+
+$mpdf = new mPDF('c', 'A4', '', '', 10, 10, 30, 20, 10, 10);
+$mpdf->SetWatermarkImage('logo.png', -3, [200, 130], 'C');
+$mpdf->showWatermarkImage = true;
+$mpdf->SetProtection(array('print'));
+$mpdf->SetTitle("Bandwidth Bill #" . $bill['id'] . " | Developed By BSD");
+$mpdf->SetAuthor("BSD.");
+$mpdf->SetDisplayMode('fullpage');
+
+$mpdf->SetHTMLHeader($header);
+$mpdf->SetHTMLFooter($footer);
+
+$html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
+$mpdf->WriteHTML($html);
+$mpdf->Output();
+
+exit;

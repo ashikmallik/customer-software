@@ -23,19 +23,45 @@ if ($obj->userWorkPermission($acc, 'delete')) {
 
 
 
-// Calculate Total Paid / Due Amount
-$paid_total = 0;
-$due_total  = 0;
+// Month filter (1-12), applies to the list and the Paid / Due cards
+$month_names = array(1 => 'January', 'February', 'March', 'April', 'May', 'June',
+                     'July', 'August', 'September', 'October', 'November', 'December');
+$filter_month = isset($_GET['month']) ? (int) $_GET['month'] : 0;
+if (!isset($month_names[$filter_month])) {
+    $filter_month = 0;
+}
 
-$sum_sql = "SELECT bill_status, SUM(total_price) AS total FROM bills GROUP BY bill_status";
-$sum_q = $obj->con->prepare($sum_sql);
-$sum_q->execute();
-while ($srow = $sum_q->fetch(PDO::FETCH_ASSOC)) {
-    if (strtoupper($srow['bill_status']) == 'PAID') {
-        $paid_total = (float) $srow['total'];
-    } elseif (strtoupper($srow['bill_status']) == 'UNPAID') {
-        $due_total = (float) $srow['total'];
+/**
+ * Format a number with up to $max decimals, trailing zeros removed, but at least $min decimals.
+ * Used so that "qty x unit price = total" shown on screen/PDF always matches.
+ */
+function bill_num($value, $min = 2, $max = 4)
+{
+    $s = number_format((float) $value, $max, '.', ',');
+    $s = rtrim($s, '0');
+    $dot = strpos($s, '.');
+    $decimals = strlen($s) - $dot - 1;
+    if ($decimals < $min) {
+        $s .= str_repeat('0', $min - $decimals);
     }
+    return rtrim($s, '.');
+}
+
+/**
+ * Grand total of a bill = sum of each item's total rounded to 2 decimals
+ * (same way the form calculates it), falls back to stored total_price.
+ */
+function bill_grand_total($items, $stored_total)
+{
+    if (empty($items)) {
+        return round((float) $stored_total, 2);
+    }
+    $sum = 0;
+    foreach ($items as $it) {
+        $line = isset($it['total_price']) ? (float) $it['total_price'] : ((float) $it['quantity'] * (float) $it['unit_price']);
+        $sum += round($line, 2);
+    }
+    return round($sum, 2);
 }
 
 /**
@@ -62,7 +88,9 @@ function build_items_from_post()
         $qty   = isset($quantities[$key]) ? (float) $quantities[$key] : 0;
         $unit  = isset($units[$key]) ? trim($units[$key]) : '';
         $price = isset($unit_prices[$key]) ? (float) $unit_prices[$key] : 0;
-        $total = $qty * $price;
+        // Round each line to 2 decimals; grand total is the sum of rounded lines,
+        // exactly like the form shows it, so the figures always match.
+        $total = round($qty * $price, 2);
 
         $items[] = array(
             'item_name'   => $name,
@@ -75,6 +103,8 @@ function build_items_from_post()
         $grand_total    += $total;
         $total_quantity += $qty;
     }
+
+    $grand_total = round($grand_total, 2);
 
     // Average unit price across all items (protects against division by zero)
     $avg_unit_price = ($total_quantity > 0) ? ($grand_total / $total_quantity) : 0;
@@ -142,6 +172,31 @@ if (isset($_POST['update_data'])) {
     } else {
         $obj->notificationStore('Update Failed', 'danger');
     }
+}
+
+// Load bills (filtered by month) and calculate Total Paid / Due Amount from the same rows
+$sql = "SELECT * FROM bills";
+if ($filter_month) {
+    $sql .= " WHERE MONTH(`date`) = " . $filter_month;
+}
+$sql .= " ORDER BY id DESC";
+$q = $obj->con->prepare($sql);
+$q->execute();
+
+$bill_rows  = array();
+$paid_total = 0;
+$due_total  = 0;
+while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
+    $items = json_decode($row['items'], true);
+    $row['items_arr']   = is_array($items) ? $items : array();
+    $row['grand_total'] = bill_grand_total($row['items_arr'], $row['total_price']);
+
+    if (strtoupper($row['bill_status']) == 'PAID') {
+        $paid_total += $row['grand_total'];
+    } elseif (strtoupper($row['bill_status']) == 'UNPAID') {
+        $due_total += $row['grand_total'];
+    }
+    $bill_rows[] = $row;
 }
 ?>
 
@@ -231,6 +286,17 @@ if (isset($_POST['update_data'])) {
     <div class="col-md-12 bg-teal-800" style="margin-bottom: 15px; padding:10px 0px 3px 15px; font-size:16px; font-family:Lucida Sans Unicode;">
         <div class="col-md-4">
             <b>View All Bills</b>
+        </div>
+        <div class="col-md-4">
+            <form method="get" style="margin:0;">
+                <input type="hidden" name="q" value="view_all_bills">
+                <select name="month" class="form-control" onchange="this.form.submit()" style="width: 220px;">
+                    <option value="">All Months</option>
+                    <?php foreach ($month_names as $m_num => $m_name) { ?>
+                        <option value="<?= $m_num; ?>" <?= $filter_month == $m_num ? 'selected' : ''; ?>><?= $m_name; ?></option>
+                    <?php } ?>
+                </select>
+            </form>
         </div>
     </div>
 </div>
@@ -384,15 +450,9 @@ if (isset($_POST['update_data'])) {
                 </thead>
                 <tbody>
                 <?php
-                $sql = "SELECT * FROM bills ORDER BY id DESC";
-                $q = $obj->con->prepare($sql);
-                $q->execute();
                 $i = 1;
-                while ($row = $q->fetch(PDO::FETCH_ASSOC)) {
-                    $items = json_decode($row['items'], true);
-                    if (!is_array($items)) {
-                        $items = array();
-                    }
+                foreach ($bill_rows as $row) {
+                    $items = $row['items_arr'];
                 ?>
                     <tr>
                         <td><?= $i++; ?></td>
@@ -409,9 +469,9 @@ if (isset($_POST['update_data'])) {
                                 <?php foreach ($items as $it): ?>
                                     <div>
                                         <b><?= htmlspecialchars($it['item_name']); ?></b>
-                                        &mdash; <?= rtrim(rtrim(number_format((float)$it['quantity'], 2), '0'), '.'); ?> <?= htmlspecialchars($it['unit']); ?>
-                                        × <?= number_format((float)$it['unit_price'], 2); ?>
-                                        = <?= number_format((float)$it['total_price'], 2); ?>
+                                        &mdash; <?= bill_num($it['quantity'], 0); ?> <?= htmlspecialchars($it['unit']); ?>
+                                        × <?= bill_num($it['unit_price']); ?>
+                                        = <?= number_format(round((float)$it['total_price'], 2), 2); ?>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -419,7 +479,7 @@ if (isset($_POST['update_data'])) {
                                 <button type="button" class="btn btn-xs btn-info toggleItemsView">More</button>
                             <?php endif; ?>
                         </td>
-                        <td><b><?= number_format($row['total_price'], 2); ?></b></td>
+                        <td><b><?= number_format($row['grand_total'], 2); ?></b></td>
                         <td>
                             <?php
                             $remarks = htmlspecialchars($row['remarks']);
@@ -521,11 +581,6 @@ $('#datatable_view_bills').DataTable({
     scrollX: true,
     responsive: true,
     dom: 'lBfrtip',
-    pageLength: 10,
-    lengthMenu: [
-        [10, 25, 50, 100, 500, 1000],
-        [10, 25, 50, 100, 500, 1000]
-    ],
     buttons: [
         { extend: 'excelHtml5', text: 'Excel', className: 'btn btn-success btn-sm', exportOptions: exportOptions },
         { extend: 'csvHtml5', text: 'CSV', className: 'btn btn-info btn-sm', exportOptions: exportOptions },
@@ -569,10 +624,15 @@ function addItemRow(data) {
     calcRowTotal($row);
 }
 
+// Round to 2 decimals the same way PHP round() does (avoids 1.005 -> 1.00 float issue)
+function round2(n) {
+    return Math.round((n + Number.EPSILON) * 100) / 100;
+}
+
 function calcRowTotal($row) {
     var qty = parseFloat($row.find('.item-qty').val()) || 0;
     var price = parseFloat($row.find('.item-price').val()) || 0;
-    $row.find('.item-total').val((qty * price).toFixed(2));
+    $row.find('.item-total').val(round2(qty * price).toFixed(2));
     calcGrandTotal();
 }
 
@@ -582,7 +642,7 @@ function calcGrandTotal() {
         var t = parseFloat($(this).find('.item-total').val()) || 0;
         total += t;
     });
-    $('#bill_grand_total').val(total.toFixed(2));
+    $('#bill_grand_total').val(round2(total).toFixed(2));
 }
 
 $(document).on('input', '.item-qty, .item-price', function () {
@@ -688,7 +748,7 @@ $(document).on('click', '.toggleStatus', function () {
     var nextStatus = (status === 'PAID') ? 'UNPAID' : 'PAID';
 
     $.ajax({
-        url: '/pdf/update_bill_status.php', // আপনার রুট ডিরেক্টরি অনুযায়ী পাথ ঠিক করে নিন
+        url: 'modules/marketing/update_bill_status.php',
         type: 'POST',
         data: {
             id: id,

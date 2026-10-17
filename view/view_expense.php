@@ -247,7 +247,7 @@ $(document).ready(function(){
     });
 
     $('#datatable_view_expense').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         buttons: ['print']
     });
 

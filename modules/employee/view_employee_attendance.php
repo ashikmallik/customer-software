@@ -157,9 +157,9 @@ $(document).ready(function() {
         searching: true,
         ordering: true,
         pageLength: 20,
-        lengthMenu: [[10, 20, 50, -1], [10, 20, 50, "All"]],
+        lengthMenu: [[20, 100, 500, -1], [20, 100, 500, "All"]],
         
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         buttons: [
             { extend: 'excel', text: 'Excel', className: 'btn btn-success btn-sm' },
             { extend: 'pdf', text: 'PDF', className: 'btn btn-danger btn-sm' },

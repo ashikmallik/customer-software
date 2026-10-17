@@ -11,10 +11,7 @@ if(isset($_POST['warehouseTransferSubmit'])){
     $item_id        = $_POST['item_id'];
     $qty            = $_POST['qty'];
 
-    $out = $obj->get_total_stock_out($item_id,$from_warehouse);
-    $in  = $obj->get_total_stock_in($item_id,$from_warehouse);
-
-    $available_qty = $in - $out;
+    $available_qty = $obj->get_available_stock($item_id, $from_warehouse);
 
     $stock_itemDetails = $obj->details_by_cond("tbl_stock_item", "item_id='$item_id'");
     $itemDetails = $obj->details_by_cond("tbl_item", "item_id='$item_id'");
@@ -26,7 +23,11 @@ if(isset($_POST['warehouseTransferSubmit'])){
     $wirehousenameto = $wirehousedatato['warehouse_name'];
     // echo $wirehousenameto; exit;
 
-    if($qty <= $available_qty){
+    if (!is_numeric($qty) || $qty <= 0) {
+        $notification = "Quantity must be greater than 0!";
+    } elseif ($from_warehouse == $to_warehouse) {
+        $notification = "From and To warehouse can not be same!";
+    } elseif($qty <= $available_qty){
 
         // Source Warehouse Stock Out
         $form_data = [
@@ -65,7 +66,10 @@ if(isset($_POST['warehouseTransferSubmit'])){
         'created_by'   => $userid
     );
 
-    $service_add = $obj->Insert_data("tbl_stock_item", $form_data);
+    // Register the item in destination warehouse only once
+    if (!$obj->details_by_cond("tbl_stock_item", "item_id='$item_id' AND warehouse_id='$to_warehouse'")) {
+        $service_add = $obj->Insert_data("tbl_stock_item", $form_data);
+    }
 
         echo "<script>window.location='?q=view_all_warehouse';</script>";
 

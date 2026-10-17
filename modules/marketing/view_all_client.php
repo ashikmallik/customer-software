@@ -321,7 +321,7 @@ $totalCols = $showAction ? 13 : 12;
     });
     
     $('#datatable_view_client').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         scrollX: true,
         buttons: [
             {

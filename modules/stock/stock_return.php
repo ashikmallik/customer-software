@@ -12,7 +12,9 @@ $details = $obj->details_by_cond("tbl_stock", "id='$token'");
 if (isset($_POST['update'])) {
     extract($_POST);
 
-    if ($details['item_qty']>=$quantity) {
+    if (!is_numeric($quantity) || $quantity <= 0) {
+        $notification = 'Return quantity must be greater than 0';
+    } elseif ($details['item_qty']>=$quantity) {
         $qty = $details['item_qty'] - $quantity;
 
         $form_data = array(

@@ -21,11 +21,11 @@ if (isset($_POST['submit'])) {
     );
 
     // Warehouse Wise Stock Check
-    $out = $obj->get_total_stock_out($item_id, $warehouse_id);
-    $in  = $obj->get_total_stock_in($item_id, $warehouse_id);
-    $qty = $in - $out;
+    $qty = $obj->get_available_stock($item_id, $warehouse_id);
 
-    if ($quantity <= $qty) {                    // < এর পরিবর্তে <= করা ভালো
+    if (!is_numeric($quantity) || $quantity <= 0) {
+        $notification = 'Quantity must be greater than 0';
+    } elseif ($quantity <= $qty) {
         $service_add = $obj->Insert_data("tbl_stock", $form_data);
 
         if ($service_add) {

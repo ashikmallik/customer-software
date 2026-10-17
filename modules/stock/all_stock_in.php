@@ -11,9 +11,14 @@ $selected_warehouse = isset($_GET['warehouse_id']) ? $_GET['warehouse_id'] : '';
 // ========== Delete Function Start =================
 if ($obj->userWorkPermission($acc, 'delete')) {
     if (isset($_GET['dltoken']) && !empty($_GET['dltoken'])) {
-        $dltoken = $_GET['dltoken'];
-        
-        if ($obj->Delete_data("tbl_stock", "id='$dltoken'")) {
+        $dltoken = (int)$_GET['dltoken'];
+        $stockRow = $obj->details_by_cond("tbl_stock", "id='$dltoken'");
+
+        // Deleting a stock-in that is already used in stock out would make stock negative
+        if ($stockRow && $stockRow['status'] == 1
+            && $obj->get_available_stock($stockRow['item_id'], $stockRow['warehouse_id'], $stockRow['id']) < 0) {
+            $obj->notificationStore('Delete not possible! This stock is already used in Stock Out. Stock would become negative.');
+        } elseif ($obj->Delete_data("tbl_stock", "id='$dltoken'")) {
             $obj->notificationStore('Delete Successfull', 'success');
         } else {
             $obj->notificationStore('Sorry ! Delete Failed. Try Again');
@@ -138,7 +143,7 @@ if ($obj->userWorkPermission($acc, 'delete')) {
 <script>
 $(document).ready(function () {
     $('#example').DataTable({
-        dom: 'Bfrtip',
+        dom: 'lBfrtip',
         buttons: [{
             extend: 'print',
             text: 'Print Stock In',
